@@ -26,4 +26,5 @@ $ ./spamreporter
 
 ## Road Map    
 1. Split out the Abuse, Admin, and Tech addresses in the whois lookup so that they can be used independently depending on the selected template.   
-2. Clean and comment the code better.    
+2. Have the Template emails open in an editor (similar to Custom option) so that they can be edited easily before sending.    
+3. Clean and comment the code better.    
