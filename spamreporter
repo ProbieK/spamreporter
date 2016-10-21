@@ -1,0 +1,533 @@
+#!/bin/bash
+
+#Clear the screen at script execution.
+clear
+
+# Set some variables
+	#Set Pretty Colors!
+		NC='\033[0m' # No Color
+		BLACK='\033[0;30m'
+		DGRAY='\033[1;30m'
+		RED='\033[0;31m'
+		LRED='\033[1;31m'
+		GREEN='\033[0;32m'
+		LGREEN='\033[1;32m'
+		ORANGE='\033[0;33m'
+		YELLOW='\033[1;33m'
+		BLUE='\033[0;34m'
+		LBLUE='\033[1;34m'
+		PURPLE='\033[0;35m'
+		LPURPLE='\033[1;35m'
+		CYAN='\033[0;36m'
+		LCYAN='\033[1;36m'
+		LGREY='\033[0;37m'
+		WHITE='\033[1;37m'
+	# Set Banner
+		banner=$(
+			echo -e "${ORANGE}  ____                          ____                       _            ${NC}"
+			echo -e "${ORANGE} / ___| _ __   __ _ _ __ ___   |  _ \ ___ _ __   ___  _ __| |_ ___ _ __ ${NC}"
+			echo -e "${ORANGE} \___ \\| '_ \ / _\` | '_ \` _ \  | |_) / _ \ '_ \ / _ \\| '__| __/ _ \ '__|${NC}"
+			echo -e "${ORANGE}  ___) | |_) | (_| | | | | | | |  _ <  __/ |_) | (_) | |  | ||  __/ |   ${NC}"
+			echo -e "${ORANGE} |____/| .__/ \__,_|_| |_| |_| |_| \_\___| .__/ \___/|_|   \__\___|_|   ${NC}"
+			echo -e "${ORANGE}  v1.0 |_|                               |_|                            ${NC}"
+			echo -e "${YELLOW}                                                   by Joshua Kroger${NC}"
+			echo -e "${YELLOW}                                                  github.com/ProbieK${NC}"
+			echo "")
+	#Create tmp files
+		mkdir ./working_dir/
+		touch ./working_dir/importemails.txt
+		touch ./working_dir/abusecontacts.txt
+		touch ./working_dir/customemail.txt
+		touch ./working_dir/fromaddress.txt
+
+	######### Preview and send a custom email response
+function customemail {
+	clear
+	echo "$banner"
+	echo -e "
+${LBLUE}########################################################################${NC}
+                     Create Custom Email Response
+${LBLUE}########################################################################${NC}"
+	if [[ $bademails ]]; then
+			echo "This will launch an editor so that you can type a custom email response."
+			echo "After you finish writing the email, save and close the editor."
+			read -sn 1 -p "Press any key to open the editor..."
+			nano ./working_dir/customemail.txt
+			customemailvar=$( cat ./working_dir/customemail.txt )
+			clear
+				if [[ $customemailvar ]] || [[ $fromaddress ]] || [[ $abusecontacts ]]; then
+					echo -e "$banner"
+					echo -e "
+${LRED}########################################################################${NC}
+                     Create Custom Email Response
+${LRED}########################################################################${NC}"
+					echo -e "${LGREEN}Please review your email response below:${NC}"
+					echo ""
+					echo "$customemailvar"
+					echo ""
+						read -p "Is this okay? [Y/n]" customresponse
+							case $(echo ${customresponse:-Y}|tr '[:lower:]' '[:upper:]') in
+								Y) echo -e "$customemailvar\n---\n" $bademails | mail -aFrom:$fromaddress -s "Abuse Report"  $abusecontacts
+                                           clear
+										   echo -e "$banner"
+										   echo -e "
+${LBLUE}########################################################################${NC}
+                     Create Custom Email Response
+${LBLUE}########################################################################${NC}"
+                                           echo -e "${GREEN}Email sent!${NC}"
+										   read -sn 1 -p "Press any key to continue..."
+												mainmenu;;
+                                N) echo ""
+                                           echo -e "${LRED}You said no${NC}"
+										   echo -e "${LGREEN}Your progress has been saved${NC}"
+										   read -sn 1 -p "Press any key to continue..."
+                            esac
+					else
+						echo -e "${LRED}[-] You can not send a blank email."
+						echo -e "${LRED}[-] Please return the the main menu and try again.${NC}"
+						read -sn 1 -p "Press any key to continue..."
+				fi
+			else
+				echo -e "${LGREEN}[-] Bad Emails not set!${NC}"
+				echo -e "${LGREEN}[-] Please return to the Main Menu and import bad emails!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+	fi
+}
+	
+######### Import a SINGLE email address to be set as From address"
+function fromaddress {
+	clear
+	echo "$banner"
+	echo -e "
+${CYAN}########################################################################${NC}
+                Set From Email Address
+${CYAN}########################################################################${NC}"
+	echo -e "Enter the email you'd like to use and press [ENTER]: "
+	read -p "> " userinput
+		if [ "$userinput" ]; then
+			echo "$userinput" > ./working_dir/fromaddress.txt
+		else
+			echo "You didn't enter anything!"
+			read -sn 1 -p "Press any key to continue..."
+		fi
+}
+	
+######### Preview and Send Template 3 (Generic Response)
+function template3 {
+clear
+echo "$banner"
+echo -e "
+${LGREEN}########################################################################${NC}
+                   Preview Generic Response Template
+${LGREEN}########################################################################${NC}"
+		if [ -f ./email_templates/email3.txt ]; then
+						echo ""
+                        cat "./email_templates/email3.txt"
+						echo ""
+                        read -sn 1 -p "Press any key to continue..."
+                else
+                        echo -e "${LGREEN}[-] Missing abuse mail template!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+        fi
+}
+
+function sendtemplate3 {
+clear
+echo "$banner"
+echo -e "
+${LRED}########################################################################${NC}
+                     Generic Response Template
+${LRED}########################################################################${NC}"
+	if [[ $bademails ]]; then
+			cat "./email_templates/email3.txt"
+                        read -p "is this okay [Y/n]" response3
+                                case $(echo ${response3:-Y}|tr '[:lower:]' '[:upper:]') in
+                                        Y) template3=$(<./email_templates/email3.txt )
+										   echo ""
+                                           echo -e "$template3\n" $bademails | mail -aFrom:$fromaddress -s "Spam Report"  $abusecontacts
+                                           clear
+										   echo -e "$banner"
+										   echo -e "
+${LGREEN}########################################################################${NC}
+                     Generic Response Template
+${LGREEN}########################################################################${NC}"
+										   echo ""
+                                           echo "Email sent!"
+					   read -sn 1 -p "Press any key to continue..."
+					   mainmenu;;
+                                        N) echo ""
+                                             echo -echo "${RED}You said no${NC}"
+					   read -sn 1 -p "Press any key to continue..."
+								mainmenu;;
+                                esac
+			else
+				echo -e "${LGREEN}[-] Bad Emails not set!${NC}"
+				echo -e "${LGREEN}[-] Please return to the Main Menu and import bad emails!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+	fi
+}
+
+function genericresponse {
+clear
+echo "$banner"
+echo -e "
+${LGREEN}########################################################################${NC}
+                       Send A Generic Response
+${LGREEN}########################################################################${NC}"
+select mmenu in "View Template" "Send Abuse Report" "Main Menu"; do
+case $mmenu in
+	"View Template")
+		template3
+		pause 
+		genericresponse;;
+		
+	"Send Abuse Report")
+		sendtemplate3
+		pause
+		genericresponse;;
+               
+	"Main Menu")
+		clear
+		mainmenu;;
+              
+	*)
+		wrongresponse
+		genericresponse;;
+		
+esac
+break
+done
+}
+
+######### Preview and Send Template 2 (Can-Spam)
+function template2 {
+clear
+echo "$banner"
+echo -e "
+${LGREEN}########################################################################${NC}
+                      Preview Can Spam Act Template
+${LGREEN}########################################################################${NC}"
+		if [ -f ./email_templates/email2.txt ]; then
+						echo ""
+                        cat "./email_templates/email2.txt"
+						echo ""
+                        read -sn 1 -p "Press any key to continue..."
+                else
+                        echo -e "${LGREEN}[-] Missing abuse mail template!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+        fi
+}
+
+function sendtemplate2 {
+clear
+echo "$banner"
+echo -e "
+${LRED}########################################################################${NC}
+                           Can Spam Act Template
+${LRED}########################################################################${NC}"
+	if [[ $bademails ]]; then
+			cat "./email_templates/email2.txt"
+                        read -p "is this okay [Y/n]" response2
+                                case $(echo ${response2:-Y}|tr '[:lower:]' '[:upper:]') in
+                                        Y) template2=$(<./email_templates/email2.txt )
+										   echo ""
+                                           echo -e "$template2\n" $bademails | mail -aFrom:$fromaddress -s "Compromised Account"  $abusecontacts
+                                           clear
+										   echo -e "$banner"
+										   echo -e "
+${LGREEN}########################################################################${NC}
+                           Can Spam Act Template
+${LGREEN}########################################################################${NC}"
+                                           echo -e "${GREEN}Email sent!${NC}"
+					   read -sn 1 -p "Press any key to continue..."
+					   mainmenu;;
+                                        N) echo ""
+                                             echo -e "${RED}You said no${NC}"
+					   read -sn 1 -p "Press any key to continue..."
+								mainmenu;;
+                                esac
+			else
+				echo -e "${LGREEN}[-] Bad Emails not set!${NC}"
+				echo -e "${LGREEN}[-] Please return to the Main Menu and import bad emails!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+	fi
+}
+
+function can-spam {
+clear
+echo "$banner"
+echo -e "
+${LGREEN}########################################################################${NC}
+                             Can Spam Act
+${LGREEN}########################################################################${NC}"
+select mmenu in "View Template" "Send Abuse Report" "Main Menu"; do
+case $mmenu in
+	"View Template")
+		template2
+		pause 
+		can-spam;;
+		
+	"Send Abuse Report")
+		sendtemplate2
+		pause
+		can-spam;;
+               
+	"Main Menu")
+		clear
+		mainmenu;;
+              
+	*)
+		wrongresponse
+		can-spam;;
+		
+esac
+break
+done
+}
+
+######### Preview and Send Template 1 (Compromised Account)
+function template1 {
+clear
+echo "$banner"
+echo -e "
+${LGREEN}########################################################################${NC}
+                   Preview Compromised Account Template
+${LGREEN}########################################################################${NC}"
+		if [ -f ./email_templates/email1.txt ]; then
+						echo ""
+                        cat "./email_templates/email1.txt"
+						echo ""
+                        read -sn 1 -p "Press any key to continue..."
+                else
+                        echo -e "${LGREEN}[-] Missing abuse mail template!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+        fi
+}
+
+function sendtemplate1 {
+clear
+echo "$banner"
+echo -e "
+${LRED}########################################################################${NC}
+                     Compromised Accout Template
+${LRED}########################################################################${NC}"
+	if [[ $bademails ]]; then
+			cat "./email_templates/email1.txt"
+                        read -p "is this okay [Y/n]" response1
+                                case $(echo ${response1:-Y}|tr '[:lower:]' '[:upper:]') in
+                                        Y) template1=$(<./email_templates/email1.txt )
+										   echo ""
+                                           echo -e "$template1\n" $bademails | mail -aFrom:$fromaddress -s "Compromised Account"  $abusecontacts
+                                           clear
+										   echo -e "$banner"
+										   echo -e "
+${LGREEN}########################################################################${NC}
+                     Compromised Accout Template
+${LGREEN}########################################################################${NC}"
+										   echo ""
+                                           echo "Email sent!"
+					   read -sn 1 -p "Press any key to continue..."
+					   mainmenu;;
+                                        N) echo ""
+                                             echo -echo "${RED}You said no${NC}"
+					   read -sn 1 -p "Press any key to continue..."
+								mainmenu;;
+                                esac
+			else
+				echo -e "${LGREEN}[-] Bad Emails not set!${NC}"
+				echo -e "${LGREEN}[-] Please return to the Main Menu and import bad emails!${NC}"
+				read -sn 1 -p "Press any key to continue..."
+	fi
+}
+
+function compromisedaccount {
+clear
+echo "$banner"
+echo -e "
+${LGREEN}########################################################################${NC}
+                       Report A Compromised Account
+${LGREEN}########################################################################${NC}"
+select mmenu in "View Template" "Send Abuse Report" "Main Menu"; do
+case $mmenu in
+	"View Template")
+		template1
+		pause 
+		compromisedaccount;;
+		
+	"Send Abuse Report")
+		sendtemplate1
+		pause
+		compromisedaccount;;
+               
+	"Main Menu")
+		clear
+		mainmenu;;
+              
+	*)
+		wrongresponse
+		compromisedaccount;;
+		
+esac
+break
+done
+}
+
+######### Import a SINGLE email address to be reported
+function import-single-email {
+	clear
+	echo "$banner"
+	echo -e "
+${CYAN}########################################################################${NC}
+                Import Single Email
+${CYAN}########################################################################${NC}"
+	echo -e "Enter the email you'd like to report and press [ENTER]: "
+	read -p "> " userinput
+		if [ "$userinput" ]; then
+			echo "$userinput" > ./working_dir/importemails.txt
+		else
+			echo "You didn't enter anything!"
+			read -sn 1 -p "Press any key to continue..."
+		fi
+}
+
+######### Import a file with MULTIPLE email addresses to be imported. Must be newline delineated
+function import-multi-emails {
+	clear
+	echo "$banner"
+	echo -e "
+${CYAN}########################################################################${NC}
+                Import Email List
+${CYAN}########################################################################${NC}"
+	echo -e "Enter path to email you'd like to report [ENTER]: "
+	echo -e "This path needs to be reletave to the folder that"
+	echo -e "you executed the script from or an absolute path"
+	read -p "> " userinput
+		if [ -r "$userinput" ]; then
+			cat "$userinput" > ./working_dir/importemails.txt
+		else
+			echo -e "${RED}File does not exist!${NC}"
+			read -sn 1 -p "Press any key to continue..."
+		fi
+}
+
+function findabusecontacts {
+	#Find abuse contact email[s]
+	clear
+	echo "$banner"
+	echo -e "
+${CYAN}########################################################################${NC}
+                Abuse Contacts List
+${CYAN}########################################################################${NC}"
+		abusecontacts=$(
+			while read -r line; do
+			whoisit=$( echo $line | sed 's/^[^@]*@//' )
+			whois $whoisit  | grep -E -o -i "^.*\b(abuse|admin|tech)\b.*$" | grep -E -o -i "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b"
+			done <<< "$bademails" )
+		echo "$abusecontacts" >./working_dir/abusecontacts.txt
+		cat "./working_dir/abusecontacts.txt"
+		echo ""
+read -sn 1 -p "Press any key to continue..."
+}		
+
+function allvariables {
+clear
+echo "$banner"
+echo ""
+echo -e "
+${PURPLE}########################################################################${NC}
+        A list of all user defineable variables
+${PURPLE}########################################################################${NC}"
+echo ""
+echo -e "${CYAN}Send Abuse Report From:${NC}\n$fromaddress"
+echo -e ""
+echo -e "${RED}Bad Emails:${NC}\n$bademails"
+echo -e ""
+echo -e "${GREEN}Abuse Contacts:${NC}\n$abusecontacts"
+echo -e ""
+echo -e "${YELLOW}Custom Email Currently in Memory:${NC}"
+echo -e "$customemailvar"
+echo -e ""
+read -sn 1 -p "Press any key to continue..."
+}
+
+function cleanexit {
+#do cleanup
+		if [ 0  -lt $(ls * 2>/dev/null | wc -w) ]
+				then
+					rm ./working_dir/*
+					clear
+					echo "Exiting Cleanly!"
+					exit 0
+		else
+			echo "Failed to exit clean!"
+			exit 1
+		fi
+}
+
+########################################################
+##             Main Menu Section
+########################################################
+function mainmenu {
+	#Set variables that need to load upon returning to Main Menu
+	abusecontacts=$(<./working_dir/abusecontacts.txt)
+	bademails=$(<./working_dir/importemails.txt)
+	fromaddress=$(<./working_dir/fromaddress.txt)
+clear
+echo "$banner"
+echo -e "
+${LBLUE}########################################################################${NC}
+                             Main Menu
+${LBLUE}########################################################################${NC}"
+echo ""
+select mmenu in "Import Multi Bad Emails" "Import Single Bad Email" "Find Abuse Contacts  " "Set \"From\" Address   " "Print All Variables" "Template: Compromised Account   " "Template: Can-Spam Act" "Template: Generic" "Custom Response" "EXIT PROGRAM"; do
+case $mmenu in
+	"Import Multi Bad Emails")
+		import-multi-emails
+		clear ;;
+	
+	"Import Single Bad Email")
+		import-single-email
+		clear ;;
+	
+	"Find Abuse Contacts  ")
+		findabusecontacts
+		clear ;;
+		
+	"Set \"From\" Address   ")
+		fromaddress
+		clear ;;
+		
+	"Print All Variables")
+		allvariables
+		pause
+		clear ;;
+		
+	"Template: Compromised Account   ")
+		compromisedaccount
+		clear ;;
+	
+	"Template: Can-Spam Act")
+		can-spam
+		clear ;;
+			
+	"Template: Generic")
+		genericresponse
+		clear ;;
+		
+	"Custom Response")
+		customemail
+		clear ;;
+		
+	"EXIT PROGRAM")
+		cleanexit
+		pause
+		clear ;;
+		
+	* )
+		wrongresponse
+		clear ;;
+esac
+break
+done
+}
+while true; do mainmenu; done
